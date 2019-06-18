@@ -9,13 +9,39 @@
     android:padding="@dimen/activity_horizontal_margin"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/txt_date"
-        style="@style/Base.TextAppearance.AppCompat.Medium.Inverse"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textColor="@android:color/black"/>
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="last"
+            android:gravity="right"
+            android:textSize="20dp"
+            android:text="@string/previous" />
+
+        <TextView
+            android:id="@+id/txt_date"
+            style="@style/Base.TextAppearance.AppCompat.Medium.Inverse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:gravity="center"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20dp"
+            android:onClick="next"
+            android:gravity="left"
+            android:text="@string/next" />
+    </LinearLayout>
 
     <com.github.airsaid.calendarview.widget.WeekView
         android:layout_width="match_parent"
@@ -36,25 +62,6 @@
         app:cv_textColor="#333333"
         app:cv_textSize="14sp"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="last"
-            android:text="last month"/>
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="next"
-            android:text="next month"/>
-    </LinearLayout>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

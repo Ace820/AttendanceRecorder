@@ -1,20 +1,32 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('/home/zhangche/AndroidStudioProjects/AttendanceRecorder/app/zhangche.jks')
+            keyAlias = 'zhangche'
+            storePassword 'ZChe142287'
+            keyPassword 'ZChe142287'
+        }
+    }
     compileSdkVersion 29
     buildToolsVersion "29.0.0"
     defaultConfig {
         applicationId "com.zhangche.attendancerecorder"
-        minSdkVersion 26
+        minSdkVersion 23
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.release
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            signingConfig signingConfigs.release
         }
     }
 }

@@ -4,22 +4,21 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
-
-import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.airsaid.calendarview.widget.CalendarView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.sql.*;
@@ -29,23 +28,26 @@ public class MainActivity extends AppCompatActivity {
 
     private CalendarView mCalendarView;
     private TextView mTxtDate;
-    DateBaseHelper dateBaseHelper;
     private TextView textArea;
+    protected ArrayList<String> records = new ArrayList<>();
+    protected boolean isServerBusy = false;
+    protected String today = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTxtDate = (TextView) findViewById(R.id.txt_date);
-        mCalendarView = (CalendarView) findViewById(R.id.calendarView);
+        mTxtDate = findViewById(R.id.txt_date);
+        mCalendarView = findViewById(R.id.calendarView);
         textArea = findViewById(R.id.textArea);
 
         // 设置已选的日期
         mCalendarView.setSelectDate(initData());
+        today = mCalendarView.getSelectDate().get(0);
 
         // 指定显示的日期, 如当前月的下个月
         Calendar calendar = mCalendarView.getCalendar();
-        calendar.add(Calendar.MONTH, 1);
+        calendar.add(Calendar.MONTH, 0);
         mCalendarView.setCalendar(calendar);
 
         // 设置字体
@@ -60,26 +62,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "month,: " + (month + 1));
                 Log.e(TAG, "day: " + day);
 
-                try {
-                    if (select) {
-                        Toast.makeText(getApplicationContext()
-                                , "选中了：" + year + "年" + (month + 1) + "月" + day + "日", Toast.LENGTH_SHORT).show();
-//                        dateBaseHelper = new DateBaseHelper();
-//                        dateBaseHelper.addRecord(formatTime(year,(month + 1), day));
-                        setAndReload(formatTime(year,(month + 1),day));
-                        textArea.append(formatTime(year,(month + 1), day));
-                    } else {
-                        Toast.makeText(getApplicationContext()
-                                , "取消选中了：" + year + "年" + (month + 1) + "月" + day + "日", Toast.LENGTH_SHORT).show();
-//                        dateBaseHelper.deleteRecord(formatTime(year,(month + 1), day));
-                        textArea.setText("");
-                        for(String record:mCalendarView.getSelectDate()) {
-                            textArea.append(record);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                createDialog(false,select,formatTime(year,month+1,day));
             }
         });
         // 设置是否能够改变日期状态
@@ -90,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataClick(@NonNull CalendarView view, int year, int month, int day) {
                 Log.e(TAG, "year: " + year);
-                Log.e(TAG, "month,: " + (month + 1));
+                Log.e(TAG, "month,: " + month);
                 Log.e(TAG, "day: " + day);
             }
         });
@@ -98,27 +81,18 @@ public class MainActivity extends AppCompatActivity {
         mCalendarView.setClickable(true);
 
         setCurDate();
-        try {
-//            mCalendarView.setSelectDate(dateBaseHelper.getRecord());
-            for(String record:mCalendarView.getSelectDate()) {
-                textArea.append(record);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        try {
-//            mCalendarView.setSelectDate(dateBaseHelper.getRecord());
-            for(String record:mCalendarView.getSelectDate()) {
-                textArea.append(record);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadRecordsFromLocal();
+//        mCalendarView.setSelectDate(records);
+//        textArea.setText("今天是" + today);
+//        try {
+//            textArea.append("\n打卡记录：\n");
+//            for(String record:mCalendarView.getSelectDate()) {
+//                textArea.append(record + "  ");
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        parseRecords();
     }
 
     private List<String> initData() {
@@ -144,22 +118,39 @@ public class MainActivity extends AppCompatActivity {
         mTxtDate.setText(mCalendarView.getYear() + "年" + (mCalendarView.getMonth() + 1) + "月");
     }
 
-    private void createDialog(boolean isComplement) {
+    private void createDialog(boolean isComplement,final boolean select,final String date) {
         String type = "打卡";
-        if (isComplement) {
+        if (isComplement)
             type = "补签";
-        } else {
-        }
+        if (!select)
+            type = "取消打卡";
+
         final AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
         alertDialog.setIcon(null);
         alertDialog.setTitle(type);
-        alertDialog.setMessage("确定" + type + "吗？");
+        alertDialog.setMessage("确定" + type + date + "吗？");
         alertDialog.setPositiveButton("确定",
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //...To-do
                         Log.d("zhangche","ok");
+                        if (select) {
+//                            save2Local();
+//                            sync2Server();
+//                            textArea.append(date + "  ");
+                        } else {
+                            removeFromRecords(date);
+//                            textArea.setText("今天是" + today);
+//                            textArea.append("\n打卡记录：\n");
+//                            for(String record:mCalendarView.getSelectDate()) {
+//                                textArea.append(record + "  ");
+//                            }
+//                            save2Local();
+//                            sync2Server();
+                        }
+//                        mCalendarView.setSelectDate(records);
+                        parseRecords();
                     }
                 });
         alertDialog.setNegativeButton("关闭",
@@ -167,11 +158,63 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //...To-do
-                        Log.d("zhangche","bad");
+                        if (!select) {
+                            //CalendatView will auto control ArrayList
+                            records.add(date);
+//                            save2Local();
+//                            sync2Server();
+                        } else {
+                            removeFromRecords(date);
+//                            textArea.setText("今天是" + today);
+//                            textArea.append("\n打卡记录：\n");
+//                            for(String record:mCalendarView.getSelectDate()) {
+//                                textArea.append(record + "  ");
+//                            }
+//                            save2Local();
+//                            sync2Server();
+                        }
+//                        mCalendarView.setSelectDate(records);
+                        parseRecords();
                     }
                 });
         // 显示
         alertDialog.show();
+    }
+
+    protected void parseRecords() {
+        save2Local();
+        sync2Server();
+        textArea.setText("今天是" + today);
+        textArea.append("\n打卡记录：\n");
+        for(String record:records) {
+            textArea.append(record + "  ");
+        }
+        mCalendarView.setSelectDate(records);
+    }
+    protected void removeFromRecords(String record) {
+        for(int var = 0;var<records.size();var++) {
+            Log.d(TAG,"act " + record + "/" + var + "/" + records.get(var));
+            if (records.get(var).equals(record)) {
+                records.remove(var);
+                Log.d(TAG,"remove " + record);
+            }
+        }
+    }
+
+    protected void removeSameRecord() {
+        ArrayList<String> tempList = new ArrayList();
+        Log.d(TAG,"total is " + records.size());
+        for(int var = 0;var<records.size();var++) {
+            if (tempList.contains(records.get(var))) {
+                records.remove(var);
+                Log.d(TAG,"remove same" + records.get(var));
+            } else {
+                tempList.add(records.get(var));
+                Log.d(TAG,"not same " + records.get(var));
+            }
+        }
+        Collections.sort(records);
+        Log.d(TAG,"after is " + records.size());
     }
     private String formatTime(int year, int month, int day) {
        String result = "";
@@ -189,7 +232,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    protected void setAndReload(final String record) {
+    protected void sync2Server() {
+        if(isServerBusy)
+            return;
+        isServerBusy = true;
         final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
         final String DB_URL = "jdbc:mysql://60.205.191.159:3306/songzhen?useSSL=false";
 
@@ -216,25 +262,32 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println(" 实例化Statement对象...");
                     stmt = conn.createStatement();
                     String sql;
-                    sql = "insert into AttendanceRecord (record) values (" + record + ")";
-//        ResultSet rs = stmt.executeQuery(sql);
+//                    sql = "SELECT record from AttendanceRecord";
+//                    ResultSet rs = stmt.executeQuery(sql);
+//
+//                    ArrayList<String> result = new ArrayList<>();
+//                    // 展开结果集数据库
+//                    while(rs.next()){
+//                        // 通过字段检索
+//                        String record = rs.getString("record");
+//
+//                        result.add(record);
+//                        // 输出数据
+//                        System.out.print("record: " + record);
+//                    }
+//                    // 完成后关闭
+//                    rs.close();
+
+                    sql = "delete from AttendanceRecord where _id >= 0";
                     stmt.executeUpdate(sql);
-                    sql = "SELECT record from AttendanceRecord";
-                    ResultSet rs = stmt.executeQuery(sql);
+                    for(String record:records) {
+                        Log.d("zhangche",record);
+                        Log.d("zhangche",record + "/" + records.size());
+                        sql = "insert into AttendanceRecord (record) values (" + record + ")";
+                        Log.d("zhangche",sql);
+                        stmt.executeUpdate(sql);
 
-                    ArrayList<String> result = new ArrayList<>();
-                    // 展开结果集数据库
-                    while(rs.next()){
-                        // 通过字段检索
-                        String record = rs.getString("record");
-
-                        result.add(record);
-                        // 输出数据
-                        System.out.print("record: " + record);
                     }
-                    // 完成后关闭
-                    rs.close();
-
                 }catch (SQLDataException se) {
                     se.printStackTrace();
                 }catch (Exception e) {
@@ -249,9 +302,34 @@ public class MainActivity extends AppCompatActivity {
                     }catch(SQLException se){
                         se.printStackTrace();
                     }
+                    isServerBusy = false;
                 }
 
             }
         }).start();
+    }
+
+    private  void loadRecordsFromLocal() {
+        SharedPreferences sp = MainActivity.this.getSharedPreferences("data", Context.MODE_PRIVATE);
+        String savedRecords = sp.getString("records","");
+        records.clear();
+        for (String record:savedRecords.split(" ")) {
+            if (record.equals(""))
+                continue;
+            records.add(record);
+            Log.d("zhangche",record + "/" + records.size());
+        }
+    }
+    private void save2Local() {
+        SharedPreferences sp = MainActivity.this.getSharedPreferences("data", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        String record2Save = "";
+        removeSameRecord();
+        for (String record:records) {
+            record2Save += record + " ";
+        }
+        Log.d(TAG,record2Save);
+        editor.putString("records",record2Save);
+        editor.apply();
     }
 }
