@@ -7,13 +7,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
 import android.view.View;
-
-import com.github.airsaid.calendarview.widget.CalendarView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     protected ArrayList<String> records = new ArrayList<>();
     protected boolean isServerBusy = false;
     protected String today = "";
+    protected int[] day2Monitor = {1,8,15,22,29};
+    protected Button[] resultBtns = new Button[5];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +42,11 @@ public class MainActivity extends AppCompatActivity {
         mTxtDate = findViewById(R.id.txt_date);
         mCalendarView = findViewById(R.id.calendarView);
         textArea = findViewById(R.id.textArea);
+        resultBtns[0] = findViewById(R.id.condition_0);
+        resultBtns[1] = findViewById(R.id.condition_1);
+        resultBtns[2] = findViewById(R.id.condition_2);
+        resultBtns[3] = findViewById(R.id.condition_3);
+        resultBtns[4] = findViewById(R.id.condition_4);
 
         // 设置已选的日期
         mCalendarView.setSelectDate(initData());
@@ -64,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
 
                 createDialog(false,select,formatTime(year,month+1,day));
             }
+
+            @Override
+            public void onSelectedMonthChange(@NonNull CalendarView view, int year, int month) {
+                setCurDate();
+                parseRecords();
+            }
         });
         // 设置是否能够改变日期状态
         mCalendarView.setChangeDateStatus(true);
@@ -82,16 +95,6 @@ public class MainActivity extends AppCompatActivity {
 
         setCurDate();
         loadRecordsFromLocal();
-//        mCalendarView.setSelectDate(records);
-//        textArea.setText("今天是" + today);
-//        try {
-//            textArea.append("\n打卡记录：\n");
-//            for(String record:mCalendarView.getSelectDate()) {
-//                textArea.append(record + "  ");
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
         parseRecords();
     }
 
@@ -107,15 +110,38 @@ public class MainActivity extends AppCompatActivity {
     public void next(View v){
         mCalendarView.nextMonth();
         setCurDate();
+        parseRecords();
     }
 
     public void last(View v){
         mCalendarView.lastMonth();
         setCurDate();
+        parseRecords();
     }
 
     private void setCurDate(){
         mTxtDate.setText(mCalendarView.getYear() + "年" + (mCalendarView.getMonth() + 1) + "月");
+    }
+
+    protected ArrayList<String> getWeekDays(String targetDay) {
+        ArrayList<String> days = new ArrayList<>();
+        try {
+            Calendar cal = Calendar.getInstance();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            cal.setTime(sdf.parse(targetDay));
+            // 获得当前日期是一个星期的第几天
+            int day = cal.get(Calendar.DAY_OF_WEEK);
+            // 获取该周第一天
+            cal.add(Calendar.DATE, cal.getFirstDayOfWeek() - day -1);
+            for (int i = 0; i < 7; i++) {
+                cal.add(Calendar.DATE, 1);
+                days.add(sdf.format(cal.getTime()));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return days;
     }
 
     private void createDialog(boolean isComplement,final boolean select,final String date) {
@@ -136,20 +162,9 @@ public class MainActivity extends AppCompatActivity {
                         //...To-do
                         Log.d("zhangche","ok");
                         if (select) {
-//                            save2Local();
-//                            sync2Server();
-//                            textArea.append(date + "  ");
                         } else {
                             removeFromRecords(date);
-//                            textArea.setText("今天是" + today);
-//                            textArea.append("\n打卡记录：\n");
-//                            for(String record:mCalendarView.getSelectDate()) {
-//                                textArea.append(record + "  ");
-//                            }
-//                            save2Local();
-//                            sync2Server();
                         }
-//                        mCalendarView.setSelectDate(records);
                         parseRecords();
                     }
                 });
@@ -161,19 +176,9 @@ public class MainActivity extends AppCompatActivity {
                         if (!select) {
                             //CalendatView will auto control ArrayList
                             records.add(date);
-//                            save2Local();
-//                            sync2Server();
                         } else {
                             removeFromRecords(date);
-//                            textArea.setText("今天是" + today);
-//                            textArea.append("\n打卡记录：\n");
-//                            for(String record:mCalendarView.getSelectDate()) {
-//                                textArea.append(record + "  ");
-//                            }
-//                            save2Local();
-//                            sync2Server();
                         }
-//                        mCalendarView.setSelectDate(records);
                         parseRecords();
                     }
                 });
@@ -190,6 +195,27 @@ public class MainActivity extends AppCompatActivity {
             textArea.append(record + "  ");
         }
         mCalendarView.setSelectDate(records);
+
+        for(int i = 0; i < day2Monitor.length;i++) {
+            ArrayList<String> list = getWeekDays(
+                    formatTime(mCalendarView.getYear(),mCalendarView.getMonth() + 1,day2Monitor[i]));
+            int days = 0;
+
+            printArrayList(list,true);
+            printArrayList(records,true);
+            for(String day:list) {
+                if(records.contains(day))
+                    days++;
+            }
+            if (days > 2) {
+                resultBtns[i].setText(R.string.absolutely_done);
+                resultBtns[i].setTextColor(Color.GREEN);
+            } else {
+                resultBtns[i].setText(R.string.not_yet);
+                resultBtns[i].setTextColor(Color.RED);
+            }
+            Log.d(TAG,i + " week has " + days);
+        }
     }
     protected void removeFromRecords(String record) {
         for(int var = 0;var<records.size();var++) {
@@ -331,5 +357,19 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG,record2Save);
         editor.putString("records",record2Save);
         editor.apply();
+    }
+
+    public void printArrayList(ArrayList list,boolean singleLine) {
+        if(singleLine) {
+            String result = "";
+            for (Object item : list) {
+                result += item.toString() + " ";
+            }
+            Log.d(TAG, result);
+        } else {
+            for(int i = 0; i < list.size(); i++) {
+                Log.d(TAG, "List num " + i + ":" + list.get(i).toString());
+            }
+        }
     }
 }

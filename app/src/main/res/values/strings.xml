@@ -2,4 +2,7 @@
     <string name="app_name">宋震的打卡记录</string>
     <string name="previous">&lt;&lt;</string>
     <string name="next">&gt;&gt;</string>
+    <string name="condition">统计</string>
+    <string name="not_yet">未完成</string>
+    <string name="absolutely_done">已完成</string>
 </resources>
