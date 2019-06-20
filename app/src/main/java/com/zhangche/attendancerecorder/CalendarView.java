@@ -49,7 +49,11 @@ public class CalendarView extends View {
     /** 默认天的背景 */
     private Drawable mDayBackground;
     /** 选中后天的背景 */
-    private Drawable mSelectDayBackground;
+    private Drawable mSelectDayBackground1;
+    private Drawable mSelectDayBackground2;
+    private Drawable mSelectDayBackground3;
+    private Drawable mSelectDayBackground4;
+    private Drawable mSelectDayBackground5;
     /** 日期格式化格式 */
     private String mDateFormatPattern;
     /** 字体 */
@@ -62,7 +66,11 @@ public class CalendarView extends View {
     /** 每行高度 */
     private int mRowHeight;
     /** 已选择日期数据 */
-    private List<String> mSelectDate;
+    private List<String> mSelectDate1;
+    private List<String> mSelectDate2;
+    private List<String> mSelectDate3;
+    private List<String> mSelectDate4;
+    private List<String> mSelectDate5;
     /** 存储对应列行处的天 */
     private int[][] mDays = new int[6][7];
 
@@ -115,7 +123,11 @@ public class CalendarView extends View {
         mSelectCalendar = Calendar.getInstance(Locale.CHINA);
         mCalendar = Calendar.getInstance(Locale.CHINA);
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mSelectDate = new ArrayList<>();
+        mSelectDate1 = new ArrayList<>();
+        mSelectDate2 = new ArrayList<>();
+        mSelectDate3 = new ArrayList<>();
+        mSelectDate4 = new ArrayList<>();
+        mSelectDate5 = new ArrayList<>();
         setClickable(true);
         initAttrs(attrs);
     }
@@ -138,8 +150,20 @@ public class CalendarView extends View {
         Drawable dayBackground = a.getDrawable(R.styleable.CalendarView_cv_dayBackground);
         setDayBackground(dayBackground);
 
-        Drawable selectDayBackground = a.getDrawable(R.styleable.CalendarView_cv_selectDayBackground);
-        setSelectDayBackground(selectDayBackground);
+        Drawable selectDay1Background = a.getDrawable(R.styleable.CalendarView_cv_selectDay1Background);
+        setSelectDay1Background(selectDay1Background);
+
+        Drawable selectDay2Background = a.getDrawable(R.styleable.CalendarView_cv_selectDay2Background);
+        setSelectDay2Background(selectDay2Background);
+
+        Drawable selectDay3Background = a.getDrawable(R.styleable.CalendarView_cv_selectDay3Background);
+        setSelectDay3Background(selectDay3Background);
+
+        Drawable selectDay4Background = a.getDrawable(R.styleable.CalendarView_cv_selectDay4Background);
+        setSelectDay4Background(selectDay4Background);
+
+        Drawable selectDay5Background = a.getDrawable(R.styleable.CalendarView_cv_selectDay5Background);
+        setSelectDay5Background(selectDay5Background);
 
         String pattern = a.getString(R.styleable.CalendarView_cv_dateFormatPattern);
         setDateFormatPattern(pattern);
@@ -181,15 +205,30 @@ public class CalendarView extends View {
             int y = (int) (mRowHeight * row + mRowHeight / 2 - (mPaint.ascent() + mPaint.descent()) / 2);
 
             // 判断 day 是否在选择日期内
-            if(mSelectDate == null || mSelectDate.size() == 0 ||
-                    !mSelectDate.contains(getFormatDate(year, month - 1, day))){
+            if(mSelectDate1 != null && mSelectDate1.size() != 0 &&
+                    mSelectDate1.contains(getFormatDate(year, month - 1, day))){
+                drawBackground(canvas, mSelectDayBackground1, column, row);
+                drawText(canvas, dayStr, mSelectTextColor, mSelectTextSize, x, y);
+            }else if(mSelectDate2 != null && mSelectDate2.size() != 0 &&
+                    mSelectDate2.contains(getFormatDate(year, month - 1, day))) {
+                drawBackground(canvas, mSelectDayBackground2, column, row);
+                drawText(canvas, dayStr, mSelectTextColor, mSelectTextSize, x, y);
+            }else if(mSelectDate3 != null && mSelectDate3.size() != 0 &&
+                    mSelectDate3.contains(getFormatDate(year, month - 1, day))) {
+                drawBackground(canvas, mSelectDayBackground3, column, row);
+                drawText(canvas, dayStr, mSelectTextColor, mSelectTextSize, x, y);
+            }else if(mSelectDate4 != null && mSelectDate4.size() != 0 &&
+                    mSelectDate4.contains(getFormatDate(year, month - 1, day))) {
+                drawBackground(canvas, mSelectDayBackground4, column, row);
+                drawText(canvas, dayStr, mSelectTextColor, mSelectTextSize, x, y);
+            }else if(mSelectDate5 != null && mSelectDate5.size() != 0 &&
+                    mSelectDate5.contains(getFormatDate(year, month - 1, day))) {
+                drawBackground(canvas, mSelectDayBackground5, column, row);
+                drawText(canvas, dayStr, mSelectTextColor, mSelectTextSize, x, y);
+            }else {
                 // 没有则绘制默认背景和文字颜色
                 drawBackground(canvas, mDayBackground, column, row);
                 drawText(canvas, dayStr, mTextColor, mTextSize, x, y);
-            }else{
-                // 否则绘制选择后的背景和文字颜色
-                drawBackground(canvas, mSelectDayBackground, column, row);
-                drawText(canvas, dayStr, mSelectTextColor, mSelectTextSize, x, y);
             }
         }
     }
@@ -263,24 +302,49 @@ public class CalendarView extends View {
         if(mOnDataClickListener != null){
             mOnDataClickListener.onDataClick(this, year, month, day);
         }
-
-        if(mIsChangeDateStatus){
+        //默认添加到mSelectDate1
+        if(mIsChangeDateStatus) {
             // 如果选中的天已经选择则取消选中
             String date = getFormatDate(year, month, day);
-            if(mSelectDate != null && mSelectDate.contains(date)){
-                mSelectDate.remove(date);
-                if(mChangeListener != null){
-                    mChangeListener.onSelectedDayChange(this, false, year, month, day);
-                }
-            }else{
-                if(mSelectDate == null){
-                    mSelectDate = new ArrayList<>();
-                }
-                mSelectDate.add(date);
-                if(mChangeListener != null){
-                    mChangeListener.onSelectedDayChange(this, true, year, month, day);
-                }
+            if (mSelectDate1.contains(date)) {
+                mSelectDate1.remove(date);
+                mChangeListener.onSelectedDayChange(this, false, year, month, day);
+            } else if (mSelectDate2.contains(date)) {
+                mSelectDate2.remove(date);
+                mChangeListener.onSelectedDayChange(this, false, year, month, day);
+            } else if (mSelectDate3.contains(date)) {
+                mSelectDate3.remove(date);
+                mChangeListener.onSelectedDayChange(this, false, year, month, day);
+            } else if (mSelectDate4.contains(date)) {
+                mSelectDate4.remove(date);
+                mChangeListener.onSelectedDayChange(this, false, year, month, day);
+            } else if (mSelectDate5.contains(date)) {
+                mSelectDate5.remove(date);
+                mChangeListener.onSelectedDayChange(this, false, year, month, day);
+            } else {
+                mSelectDate1.add(date);
+                mChangeListener.onSelectedDayChange(this, true, year, month, day);
             }
+//            ArrayList<List> lists = new ArrayList<>();
+//            lists.add(mSelectDate1);
+//            lists.add(mSelectDate2);
+//            lists.add(mSelectDate3);
+//            lists.add(mSelectDate4);
+//            lists.add(mSelectDate5);
+//            for(List list:lists) {
+//                if(list != null && list.contains(date)){
+//                    list.remove(date);
+//                        mChangeListener.onSelectedDayChange(this, false, year, month, day);
+//                }else{
+//                    if(mSelectDate1 == null){
+//                        mSelectDate1 = new ArrayList<>();
+//                    }
+//                    mSelectDate1.add(date);
+//                    if(mChangeListener != null){
+//                        mChangeListener.onSelectedDayChange(this, true, year, month, day);
+//                    }
+//                }
+//            }
             invalidate();
         }
     }
@@ -291,8 +355,28 @@ public class CalendarView extends View {
      * @param days 日期数据, 日期格式为 setDateFormatPattern(String) 方法所指定,
      * 如果没有设置则以默认的格式 {@link #DATE_FORMAT_PATTERN} 进行格式化.
      */
-    public void setSelectDate(List<String> days){
-        this.mSelectDate = days;
+    public void setSelectDate1(List<String> days){
+        this.mSelectDate1 = days;
+        invalidate();
+    }
+
+    public void setSelectDate2(List<String> days){
+        this.mSelectDate2 = days;
+        invalidate();
+    }
+
+    public void setSelectDate3(List<String> days){
+        this.mSelectDate3 = days;
+        invalidate();
+    }
+
+    public void setSelectDate4(List<String> days){
+        this.mSelectDate4 = days;
+        invalidate();
+    }
+
+    public void setSelectDate5(List<String> days){
+        this.mSelectDate5 = days;
         invalidate();
     }
 
@@ -301,8 +385,24 @@ public class CalendarView extends View {
      *
      * @return 日期数据.
      */
-    public List<String> getSelectDate(){
-        return mSelectDate;
+    public List<String> getSelectDate1(){
+        return mSelectDate1;
+    }
+
+    public List<String> getSelectDate2(){
+        return mSelectDate2;
+    }
+
+    public List<String> getSelectDate3(){
+        return mSelectDate3;
+    }
+
+    public List<String> getSelectDate4(){
+        return mSelectDate4;
+    }
+
+    public List<String> getSelectDate5(){
+        return mSelectDate5;
     }
 
     /**
@@ -411,10 +511,38 @@ public class CalendarView extends View {
      *
      * @param background 背景 drawable.
      */
-    public void setSelectDayBackground(Drawable background){
-        if(background != null && mSelectDayBackground != background){
-            this.mSelectDayBackground = background;
-            setCompoundDrawablesWithIntrinsicBounds(mSelectDayBackground);
+    public void setSelectDay1Background(Drawable background){
+        if(background != null && mSelectDayBackground1 != background){
+            this.mSelectDayBackground1 = background;
+            setCompoundDrawablesWithIntrinsicBounds(mSelectDayBackground1);
+        }
+    }
+
+    public void setSelectDay2Background(Drawable background){
+        if(background != null && mSelectDayBackground2 != background){
+            this.mSelectDayBackground2 = background;
+            setCompoundDrawablesWithIntrinsicBounds(mSelectDayBackground2);
+        }
+    }
+
+    public void setSelectDay3Background(Drawable background){
+        if(background != null && mSelectDayBackground3 != background){
+            this.mSelectDayBackground3 = background;
+            setCompoundDrawablesWithIntrinsicBounds(mSelectDayBackground3);
+        }
+    }
+
+    public void setSelectDay4Background(Drawable background){
+        if(background != null && mSelectDayBackground4 != background){
+            this.mSelectDayBackground4 = background;
+            setCompoundDrawablesWithIntrinsicBounds(mSelectDayBackground4);
+        }
+    }
+
+    public void setSelectDay5Background(Drawable background){
+        if(background != null && mSelectDayBackground5 != background){
+            this.mSelectDayBackground5 = background;
+            setCompoundDrawablesWithIntrinsicBounds(mSelectDayBackground5);
         }
     }
 

@@ -68,7 +68,11 @@
                 android:layout_height="300dp"
                 android:background="@android:color/white"
                 app:cv_dayBackground="@drawable/bg_day_un_selected"
-                app:cv_selectDayBackground="@drawable/bg_day_selected"
+                app:cv_selectDay1Background="@drawable/bg_day_selected1"
+                app:cv_selectDay2Background="@drawable/bg_day_selected2"
+                app:cv_selectDay3Background="@drawable/bg_day_selected3"
+                app:cv_selectDay4Background="@drawable/bg_day_selected4"
+                app:cv_selectDay5Background="@drawable/bg_day_selected5"
                 app:cv_selectTextColor="@android:color/white"
                 android:layout_weight="7"
                 app:cv_textColor="#333333"
@@ -78,47 +82,58 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:visibility="gone"
             android:layout_weight="1">
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="10dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
                 android:text="@string/condition"
+                android:textSize="15dp"
+                android:gravity="center"
                 android:background="@color/colorWhite"
                 />
-            <Button
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/not_yet"
                 android:id="@+id/condition_0"
+                android:src="@drawable/result_0"
                 android:background="@color/colorWhite"
+                android:layout_gravity="center"
                 />
-            <Button
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/not_yet"
                 android:id="@+id/condition_1"
+                android:src="@drawable/result_0"
                 android:background="@color/colorWhite"
+                android:layout_gravity="center"
                 />
-            <Button
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/not_yet"
                 android:id="@+id/condition_2"
+                android:src="@drawable/result_0"
                 android:background="@color/colorWhite"
+                android:layout_gravity="center"
                 />
-            <Button
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/not_yet"
                 android:id="@+id/condition_3"
+                android:src="@drawable/result_0"
                 android:background="@color/colorWhite"
+                android:layout_gravity="center"
                 />
-            <Button
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/not_yet"
                 android:id="@+id/condition_4"
+                android:src="@drawable/result_0"
                 android:background="@color/colorWhite"
+                android:layout_gravity="center"
                 />
         </LinearLayout>
     </LinearLayout>

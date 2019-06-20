@@ -14,7 +14,11 @@
         <attr name="cv_textSize" format="dimension|reference"/>
         <attr name="cv_selectTextSize" format="dimension|reference"/>
         <attr name="cv_dayBackground" format="reference"/>
-        <attr name="cv_selectDayBackground" format="reference"/>
+        <attr name="cv_selectDay1Background" format="reference"/>
+        <attr name="cv_selectDay2Background" format="reference"/>
+        <attr name="cv_selectDay3Background" format="reference"/>
+        <attr name="cv_selectDay4Background" format="reference"/>
+        <attr name="cv_selectDay5Background" format="reference"/>
         <attr name="cv_dateFormatPattern" format="string|reference"/>
         <attr name="cv_isChangeDateStatus" format="boolean|reference"/>
     </declare-styleable>

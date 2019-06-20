@@ -11,7 +11,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.view.View;
 
@@ -30,10 +30,23 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTxtDate;
     private TextView textArea;
     protected ArrayList<String> records = new ArrayList<>();
+    protected ArrayList<String> unpassedRecords = new ArrayList<>();
+    protected ArrayList<String> passedRecords = new ArrayList<>();
     protected boolean isServerBusy = false;
     protected String today = "";
-    protected int[] day2Monitor = {1,8,15,22,29};
-    protected Button[] resultBtns = new Button[5];
+    protected int[] day2Monitor = {1, 8, 15, 22, 29};
+    protected ImageView[] resultBtns = new ImageView[5];
+    protected int[] resourceIds = {
+            R.drawable.result_0,
+            R.drawable.result_1,
+            R.drawable.result_2,
+            R.drawable.result_3,
+            R.drawable.result_4,
+            R.drawable.result_5,
+            R.drawable.result_6,
+            R.drawable.result_7,
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,8 +62,9 @@ public class MainActivity extends AppCompatActivity {
         resultBtns[4] = findViewById(R.id.condition_4);
 
         // 设置已选的日期
-        mCalendarView.setSelectDate(initData());
-        today = mCalendarView.getSelectDate().get(0);
+//        mCalendarView.setSelectDate(initData());
+//        today = mCalendarView.getSelectDate().get(0);
+        today = getToday();
 
         // 指定显示的日期, 如当前月的下个月
         Calendar calendar = mCalendarView.getCalendar();
@@ -69,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "month,: " + (month + 1));
                 Log.e(TAG, "day: " + day);
 
-                createDialog(false,select,formatTime(year,month+1,day));
+                createDialog(false, select, formatTime(year, month + 1, day));
             }
 
             @Override
@@ -82,14 +96,14 @@ public class MainActivity extends AppCompatActivity {
         mCalendarView.setChangeDateStatus(true);
 
         // 设置日期点击监听
-        mCalendarView.setOnDataClickListener(new CalendarView.OnDataClickListener() {
-            @Override
-            public void onDataClick(@NonNull CalendarView view, int year, int month, int day) {
-                Log.e(TAG, "year: " + year);
-                Log.e(TAG, "month,: " + month);
-                Log.e(TAG, "day: " + day);
-            }
-        });
+//        mCalendarView.setOnDataClickListener(new CalendarView.OnDataClickListener() {
+//            @Override
+//            public void onDataClick(@NonNull CalendarView view, int year, int month, int day) {
+//                Log.e(TAG, "year: " + year);
+//                Log.e(TAG, "month,: " + month);
+//                Log.e(TAG, "day: " + day);
+//            }
+//        });
         // 设置是否能够点击
         mCalendarView.setClickable(true);
 
@@ -107,19 +121,26 @@ public class MainActivity extends AppCompatActivity {
         return dates;
     }
 
-    public void next(View v){
+    private String getToday() {
+        Calendar calendar = Calendar.getInstance(Locale.CHINA);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd", Locale.CHINA);
+        sdf.format(calendar.getTime());
+        return sdf.format(calendar.getTime());
+    }
+
+    public void next(View v) {
         mCalendarView.nextMonth();
         setCurDate();
         parseRecords();
     }
 
-    public void last(View v){
+    public void last(View v) {
         mCalendarView.lastMonth();
         setCurDate();
         parseRecords();
     }
 
-    private void setCurDate(){
+    private void setCurDate() {
         mTxtDate.setText(mCalendarView.getYear() + "年" + (mCalendarView.getMonth() + 1) + "月");
     }
 
@@ -132,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
             // 获得当前日期是一个星期的第几天
             int day = cal.get(Calendar.DAY_OF_WEEK);
             // 获取该周第一天
-            cal.add(Calendar.DATE, cal.getFirstDayOfWeek() - day -1);
+            cal.add(Calendar.DATE, cal.getFirstDayOfWeek() - day - 1);
             for (int i = 0; i < 7; i++) {
                 cal.add(Calendar.DATE, 1);
                 days.add(sdf.format(cal.getTime()));
@@ -144,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         return days;
     }
 
-    private void createDialog(boolean isComplement,final boolean select,final String date) {
+    private void createDialog(boolean isComplement, final boolean select, final String date) {
         String type = "打卡";
         if (isComplement)
             type = "补签";
@@ -160,8 +181,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //...To-do
-                        Log.d("zhangche","ok");
+                        Log.d("zhangche", "ok");
                         if (select) {
+                            records.add(date);
                         } else {
                             removeFromRecords(date);
                         }
@@ -173,9 +195,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //...To-do
+                        print(select);
                         if (!select) {
                             //CalendatView will auto control ArrayList
-                            records.add(date);
+//                            records.add(date);
                         } else {
                             removeFromRecords(date);
                         }
@@ -191,63 +214,72 @@ public class MainActivity extends AppCompatActivity {
         sync2Server();
         textArea.setText("今天是" + today);
         textArea.append("\n打卡记录：\n");
-        for(String record:records) {
+        for (String record : records) {
             textArea.append(record + "  ");
         }
-        mCalendarView.setSelectDate(records);
+        //mCalendarView.setSelectDate1(records);
 
-        for(int i = 0; i < day2Monitor.length;i++) {
+        passedRecords.clear();
+        unpassedRecords.clear();
+
+        for (int i = 0; i < day2Monitor.length; i++) {
             ArrayList<String> list = getWeekDays(
-                    formatTime(mCalendarView.getYear(),mCalendarView.getMonth() + 1,day2Monitor[i]));
+                    formatTime(mCalendarView.getYear(), mCalendarView.getMonth() + 1, day2Monitor[i]));
             int days = 0;
 
-            printArrayList(list,true);
-            printArrayList(records,true);
-            for(String day:list) {
-                if(records.contains(day))
+            printArrayList(list, true);
+            printArrayList(records, true);
+            ArrayList<String> recordedDays = new ArrayList<>();
+            for (String day : list) {
+                if (records.contains(day)) {
                     days++;
+                    recordedDays.add(day);
+                }
             }
             if (days > 2) {
-                resultBtns[i].setText(R.string.absolutely_done);
-                resultBtns[i].setTextColor(Color.GREEN);
+                passedRecords.addAll(recordedDays);
             } else {
-                resultBtns[i].setText(R.string.not_yet);
-                resultBtns[i].setTextColor(Color.RED);
+                unpassedRecords.addAll(recordedDays);
             }
-            Log.d(TAG,i + " week has " + days);
+            resultBtns[i].setImageResource(resourceIds[days]);
+            Log.d(TAG, i + " week has " + days);
         }
+        mCalendarView.setSelectDate1(unpassedRecords);
+        mCalendarView.setSelectDate2(passedRecords);
     }
+
     protected void removeFromRecords(String record) {
-        for(int var = 0;var<records.size();var++) {
-            Log.d(TAG,"act " + record + "/" + var + "/" + records.get(var));
+        for (int var = 0; var < records.size(); var++) {
+            Log.d(TAG, "act " + record + "/" + var + "/" + records.get(var));
             if (records.get(var).equals(record)) {
                 records.remove(var);
-                Log.d(TAG,"remove " + record);
+                Log.d(TAG, "remove " + record);
             }
         }
     }
 
     protected void removeSameRecord() {
         ArrayList<String> tempList = new ArrayList();
-        Log.d(TAG,"total is " + records.size());
-        for(int var = 0;var<records.size();var++) {
+        Log.d(TAG, "total is " + records.size());
+        for (int var = 0; var < records.size(); var++) {
             if (tempList.contains(records.get(var))) {
+                Log.d(TAG, "remove same" + records.get(var));
                 records.remove(var);
-                Log.d(TAG,"remove same" + records.get(var));
             } else {
                 tempList.add(records.get(var));
-                Log.d(TAG,"not same " + records.get(var));
+//                Log.d(TAG,"not same " + records.get(var));
             }
         }
         Collections.sort(records);
-        Log.d(TAG,"after is " + records.size());
+        Log.d(TAG, "after is " + records.size());
     }
+
     private String formatTime(int year, int month, int day) {
-       String result = "";
-       if (month < 10)
-           result = result + year + "0" + month;
-       else
-           result = result + year + month;
+        String result = "";
+        if (month < 10)
+            result = result + year + "0" + month;
+        else
+            result = result + year + month;
 
         if (day < 10)
             result = result + "0" + day;
@@ -259,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     protected void sync2Server() {
-        if(isServerBusy)
+        if (isServerBusy)
             return;
         isServerBusy = true;
         final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
@@ -282,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // 打开链接
                     System.out.println("连接数据库...");
-                    conn = DriverManager.getConnection(DB_URL,USER,PASS);
+                    conn = DriverManager.getConnection(DB_URL, USER, PASS);
 
                     // 执行查询
                     System.out.println(" 实例化Statement对象...");
@@ -306,26 +338,26 @@ public class MainActivity extends AppCompatActivity {
 
                     sql = "delete from AttendanceRecord where _id >= 0";
                     stmt.executeUpdate(sql);
-                    for(String record:records) {
-                        Log.d("zhangche",record);
-                        Log.d("zhangche",record + "/" + records.size());
+                    for (String record : records) {
+//                        Log.d("zhangche",record);
+//                        Log.d("zhangche",record + "/" + records.size());
                         sql = "insert into AttendanceRecord (record) values (" + record + ")";
-                        Log.d("zhangche",sql);
+//                        Log.d("zhangche",sql);
                         stmt.executeUpdate(sql);
 
                     }
-                }catch (SQLDataException se) {
+                } catch (SQLDataException se) {
                     se.printStackTrace();
-                }catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                }finally {
-                    try{
-                        if(stmt!=null) stmt.close();
-                    }catch(SQLException se2){
+                } finally {
+                    try {
+                        if (stmt != null) stmt.close();
+                    } catch (SQLException se2) {
                     }// 什么都不做
-                    try{
-                        if(conn!=null) conn.close();
-                    }catch(SQLException se){
+                    try {
+                        if (conn != null) conn.close();
+                    } catch (SQLException se) {
                         se.printStackTrace();
                     }
                     isServerBusy = false;
@@ -335,41 +367,58 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private  void loadRecordsFromLocal() {
+    private void loadRecordsFromLocal() {
         SharedPreferences sp = MainActivity.this.getSharedPreferences("data", Context.MODE_PRIVATE);
-        String savedRecords = sp.getString("records","");
+        String savedRecords = sp.getString("records", "");
         records.clear();
-        for (String record:savedRecords.split(" ")) {
+        for (String record : savedRecords.split(" ")) {
             if (record.equals(""))
                 continue;
             records.add(record);
-            Log.d("zhangche",record + "/" + records.size());
+            Log.d("zhangche", record + "/" + records.size());
         }
     }
+
     private void save2Local() {
         SharedPreferences sp = MainActivity.this.getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
-        String record2Save = "";
         removeSameRecord();
-        for (String record:records) {
+        String record2Save = "";
+        for (String record : records) {
             record2Save += record + " ";
         }
-        Log.d(TAG,record2Save);
-        editor.putString("records",record2Save);
+        Log.d(TAG, record2Save);
+        editor.putString("records", record2Save);
+        record2Save = "";
+        for (String record : unpassedRecords) {
+            record2Save += record + " ";
+        }
+        Log.d(TAG, record2Save);
+        editor.putString("unpassedRecords", record2Save);
+        record2Save = "";
+        for (String record : passedRecords) {
+            record2Save += record + " ";
+        }
+        Log.d(TAG, record2Save);
+        editor.putString("passedRecords", record2Save);
         editor.apply();
     }
 
-    public void printArrayList(ArrayList list,boolean singleLine) {
-        if(singleLine) {
+    public void printArrayList(ArrayList list, boolean singleLine) {
+        if (singleLine) {
             String result = "";
             for (Object item : list) {
                 result += item.toString() + " ";
             }
             Log.d(TAG, result);
         } else {
-            for(int i = 0; i < list.size(); i++) {
+            for (int i = 0; i < list.size(); i++) {
                 Log.d(TAG, "List num " + i + ":" + list.get(i).toString());
             }
         }
+    }
+
+    public void print(Object str) {
+        Log.d(TAG, "" + str.toString());
     }
 }
