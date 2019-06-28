@@ -307,22 +307,22 @@ public class CalendarView extends View {
             // 如果选中的天已经选择则取消选中
             String date = getFormatDate(year, month, day);
             if (mSelectDate1.contains(date)) {
-                mSelectDate1.remove(date);
+//                mSelectDate1.remove(date);
                 mChangeListener.onSelectedDayChange(this, false, year, month, day);
             } else if (mSelectDate2.contains(date)) {
-                mSelectDate2.remove(date);
+//                mSelectDate2.remove(date);
                 mChangeListener.onSelectedDayChange(this, false, year, month, day);
             } else if (mSelectDate3.contains(date)) {
-                mSelectDate3.remove(date);
+//                mSelectDate3.remove(date);
                 mChangeListener.onSelectedDayChange(this, false, year, month, day);
             } else if (mSelectDate4.contains(date)) {
-                mSelectDate4.remove(date);
+//                mSelectDate4.remove(date);
                 mChangeListener.onSelectedDayChange(this, false, year, month, day);
             } else if (mSelectDate5.contains(date)) {
-                mSelectDate5.remove(date);
+//                mSelectDate5.remove(date);
                 mChangeListener.onSelectedDayChange(this, false, year, month, day);
             } else {
-                mSelectDate1.add(date);
+//                mSelectDate1.add(date);
                 mChangeListener.onSelectedDayChange(this, true, year, month, day);
             }
 //            ArrayList<List> lists = new ArrayList<>();

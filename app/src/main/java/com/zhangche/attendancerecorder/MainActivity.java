@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     protected ArrayList<String> records = new ArrayList<>();
     protected ArrayList<String> unpassedRecords = new ArrayList<>();
     protected ArrayList<String> passedRecords = new ArrayList<>();
+    protected ArrayList<String> complementRecords = new ArrayList<>();
     protected boolean isServerBusy = false;
     protected String today = "";
     protected int[] day2Monitor = {1, 8, 15, 22, 29};
@@ -83,7 +84,11 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "month,: " + (month + 1));
                 Log.e(TAG, "day: " + day);
 
-                createDialog(false, select, formatTime(year, month + 1, day));
+                try {
+                    createDialog(select, formatTime(year, month + 1, day));
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -123,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String getToday() {
         Calendar calendar = Calendar.getInstance(Locale.CHINA);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd", Locale.CHINA);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.CHINA);
         sdf.format(calendar.getTime());
         return sdf.format(calendar.getTime());
     }
@@ -165,46 +170,60 @@ public class MainActivity extends AppCompatActivity {
         return days;
     }
 
-    private void createDialog(boolean isComplement, final boolean select, final String date) {
+    private void createDialog(final boolean select, final String date) {
         String type = "打卡";
-        if (isComplement)
+        if (isComplement(date))
             type = "补签";
         if (!select)
             type = "取消打卡";
 
+        String messageLine = "确定" + type + "吗?";
+        if (isAfter(date))
+            messageLine = "不能超过今天：" + today + "!";
+
         final AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
         alertDialog.setIcon(null);
         alertDialog.setTitle(type);
-        alertDialog.setMessage("确定" + type + date + "吗？");
+        alertDialog.setMessage(messageLine);
         alertDialog.setPositiveButton("确定",
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //...To-do
-                        Log.d("zhangche", "ok");
-                        if (select) {
-                            records.add(date);
+                        if (isAfter(date)) {
+                            print("select date " + date + "is after today " + today);
                         } else {
-                            removeFromRecords(date);
+                            Log.d("zhangche", "ok");
+                            if (select) {
+                                records.add(date);
+                                if (isComplement(date))
+                                    complementRecords.add(date);
+                            } else {
+//                                removeFromRecords(date);
+                                records.remove(date);
+                                complementRecords.remove(date);
+                            }
                         }
                         parseRecords();
                     }
                 });
-        alertDialog.setNegativeButton("关闭",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //...To-do
-                        print(select);
-                        if (!select) {
-                            //CalendatView will auto control ArrayList
-//                            records.add(date);
-                        } else {
-                            removeFromRecords(date);
+        if (!isAfter(date)) {
+            alertDialog.setNegativeButton("取消",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //...To-do
+                            print(select);
+//                            if (!select) {
+//                                //CalendatView will auto control ArrayList
+////                            records.add(date);
+//                            } else {
+//                                removeFromRecords(date);
+//                            }
+//                            parseRecords();
                         }
-                        parseRecords();
-                    }
-                });
+                    });
+        }
         // 显示
         alertDialog.show();
     }
@@ -233,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
             for (String day : list) {
                 if (records.contains(day)) {
                     days++;
+                    if (!complementRecords.contains(day))
                     recordedDays.add(day);
                 }
             }
@@ -244,8 +264,15 @@ public class MainActivity extends AppCompatActivity {
             resultBtns[i].setImageResource(resourceIds[days]);
             Log.d(TAG, i + " week has " + days);
         }
+        print("unpass:");
+        printArrayList(unpassedRecords,true);
+        print("pass:");
+        printArrayList(passedRecords,true);
+        print("complement:");
+        printArrayList(complementRecords,true);
         mCalendarView.setSelectDate1(unpassedRecords);
         mCalendarView.setSelectDate2(passedRecords);
+        mCalendarView.setSelectDate3(complementRecords);
     }
 
     protected void removeFromRecords(String record) {
@@ -289,8 +316,18 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
+    private boolean isComplement(String day) {
+        return Integer.valueOf(day) < Integer.valueOf(today);
+    }
+
+    private boolean isAfter(String day) {
+        print(day + today);
+        return Integer.valueOf(day) > Integer.valueOf(today);
+    }
 
     protected void sync2Server() {
+
+        isServerBusy = true;
         if (isServerBusy)
             return;
         isServerBusy = true;
@@ -370,12 +407,22 @@ public class MainActivity extends AppCompatActivity {
     private void loadRecordsFromLocal() {
         SharedPreferences sp = MainActivity.this.getSharedPreferences("data", Context.MODE_PRIVATE);
         String savedRecords = sp.getString("records", "");
+        print("records in device:");
         records.clear();
         for (String record : savedRecords.split(" ")) {
             if (record.equals(""))
                 continue;
             records.add(record);
             Log.d("zhangche", record + "/" + records.size());
+        }
+        String savedComplementRecords = sp.getString("complementRecords", "");
+        complementRecords.clear();
+        print("complement records in device:");
+        for (String record : savedComplementRecords.split(" ")) {
+            if (record.equals(""))
+                continue;
+            complementRecords.add(record);
+            Log.d("zhangche", record + "/" + complementRecords.size());
         }
     }
 
@@ -389,6 +436,12 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.d(TAG, record2Save);
         editor.putString("records", record2Save);
+        record2Save = "";
+        for (String record : complementRecords) {
+            record2Save += record + " ";
+        }
+        Log.d(TAG, record2Save);
+        editor.putString("complementRecords", record2Save);
         record2Save = "";
         for (String record : unpassedRecords) {
             record2Save += record + " ";
