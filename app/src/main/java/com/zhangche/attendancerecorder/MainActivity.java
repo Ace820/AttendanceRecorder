@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     protected ArrayList<String> unpassedRecords = new ArrayList<>();
     protected ArrayList<String> passedRecords = new ArrayList<>();
     protected ArrayList<String> complementRecords = new ArrayList<>();
+    protected ArrayList<String> specialRecords = new ArrayList<>();
     protected boolean isServerBusy = false;
     protected String today = "";
     protected int[] day2Monitor = {1, 8, 15, 22, 29};
@@ -202,12 +202,32 @@ public class MainActivity extends AppCompatActivity {
 //                                removeFromRecords(date);
                                 records.remove(date);
                                 complementRecords.remove(date);
+                                specialRecords.remove(date);
                             }
                         }
                         parseRecords();
                     }
                 });
         if (!isAfter(date)) {
+            if (select) {
+                alertDialog.setNeutralButton("特殊情况",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //...To-do
+                                print(select);
+                                if (select) {
+                                    records.add(date);
+                                    specialRecords.add(date);
+                                } else {
+//                                removeFromRecords(date);
+                                    records.remove(date);
+                                    specialRecords.remove(date);
+                                }
+                                parseRecords();
+                            }
+                        });
+            }
             alertDialog.setNegativeButton("取消",
                     new DialogInterface.OnClickListener() {
                         @Override
@@ -252,8 +272,8 @@ public class MainActivity extends AppCompatActivity {
             for (String day : list) {
                 if (records.contains(day)) {
                     days++;
-                    if (!complementRecords.contains(day))
-                    recordedDays.add(day);
+                    if ((!complementRecords.contains(day)) && (!specialRecords.contains(day)))
+                        recordedDays.add(day);
                 }
             }
             if (days > 2) {
@@ -273,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
         mCalendarView.setSelectDate1(unpassedRecords);
         mCalendarView.setSelectDate2(passedRecords);
         mCalendarView.setSelectDate3(complementRecords);
+        mCalendarView.setSelectDate5(specialRecords);
     }
 
     protected void removeFromRecords(String record) {
@@ -424,6 +445,15 @@ public class MainActivity extends AppCompatActivity {
             complementRecords.add(record);
             Log.d("zhangche", record + "/" + complementRecords.size());
         }
+        String savedSpecialRecords = sp.getString("specialRecords", "");
+        specialRecords.clear();
+        print("special records in device:");
+        for (String record : savedSpecialRecords.split(" ")) {
+            if (record.equals(""))
+                continue;
+            specialRecords.add(record);
+            Log.d("zhangche", record + "/" + specialRecords.size());
+        }
     }
 
     private void save2Local() {
@@ -442,6 +472,12 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.d(TAG, record2Save);
         editor.putString("complementRecords", record2Save);
+        record2Save = "";
+        for (String record : specialRecords) {
+            record2Save += record + " ";
+        }
+        Log.d(TAG, record2Save);
+        editor.putString("specialRecords", record2Save);
         record2Save = "";
         for (String record : unpassedRecords) {
             record2Save += record + " ";
